@@ -19,9 +19,11 @@ fn main() {
     let command_to_launch = &args[2];
     match command_to_launch.as_str() {
         "show-infos" => { show_infos(project_basepath); },
+        "build" => { build(project_basepath); },
         _ => {
             println!("Commande {} inconnue.\nLa commande possible est :", command_to_launch);
             println!("\tshow-infos : Montre les informations du projet.");
+            println!("\tbuild : Compile le projet.");
         }
     }
 }
@@ -57,4 +59,17 @@ fn show_infos(project_basepath : &str) {
     } else {
         println!("Aucun plugin dans le projet.");
     }
+
+    return;
+}
+
+
+fn build(project_basepath : &str) {
+    let project_name = project_basepath.split('\\').last().unwrap().split(".uproject").next().unwrap();
+
+    let target = utils::select_choice("What's your target platform ?", vec!["Win64", "Mac", "IOS", "Android", "Linux", "LinuxArm64", "TVOS", "VisionOS"]);
+    //let opti = utils::select_choice("What's your optimization ?", vec!["Development", "Production"]);
+
+    utils::execute_command("./Engine/Build/BatchFiles/Build.bat", &[project_name, target, "Development", project_basepath, "-waitmutex"]);
+    return;
 }
