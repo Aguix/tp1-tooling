@@ -7,7 +7,7 @@ pub mod utils;
 fn main() {
     let args: Vec<String> = env::args().collect();
     if args.len() < 3 {
-        panic!("Usage: {} <project_basepath> <command_to_launch>", args[0]);
+        panic!("Utilisation: {} <chemin du fichier uproject> <commande à lancer>", args[0]);
     }
 
     let project_basepath = &args[1];
@@ -20,10 +20,12 @@ fn main() {
     match command_to_launch.as_str() {
         "show-infos" => { show_infos(project_basepath); },
         "build" => { build(project_basepath); },
+        "package" => { package(project_basepath); },
         _ => {
             println!("Commande {} inconnue.\nLa commande possible est :", command_to_launch);
             println!("\tshow-infos : Montre les informations du projet.");
             println!("\tbuild : Compile le projet.");
+            println!("\tpackage <chemin du package> : Package le projet.");
         }
     }
 }
@@ -72,4 +74,48 @@ fn build(project_basepath : &str) {
 
     utils::execute_command("./Engine/Build/BatchFiles/Build.bat", &[project_name, target, "Development", project_basepath, "-waitmutex"]);
     return;
+}
+
+fn package(project_basepath : &str) {
+    /* Command line example
+    C:/Users/Romain/Documents/UnrealEngine/Games/MyTestProject/MyTestProject.uproject BuildCookRun
+    -project=C:/Users/Romain/Documents/UnrealEngine/Games/MyTestProject/MyTestProject.uproject
+    -noP4 -clientconfig=Development -serverconfig=Development -nocompileeditor
+    -unrealexe=C:\Users\Romain\Documents\UnrealEngine\Engine\Binaries\Win64\UnrealEditor-Cmd.exe
+    -utf8output -platform=Win64 -build -cook -map=ThirdPersonMap+ThirdPersonMap -CookCultures=en
+    -unversionedcookedcontent -stage -package -cmdline="ThirdPersonMap -Messaging"
+    -addcmdline="-SessionId=4A12A4C64656F57DD62E68A13C16AD3D -SessionOwner='Romain' -SessionName='UnNomInteressant'   "
+    */
+
+    // C:/Users/Romain/Documents/UnrealEngine/Games/MyTestProject/MyTestProject.uproject BuildCookRun -project=C:/Users/Romain/Documents/UnrealEngine/Games/MyTestProject/MyTestProject.uproject -noP4 -clientconfig=Development -serverconfig=Development -nocompileeditor -unrealexe=C:\Users\Romain\Documents\UnrealEngine\Engine\Binaries\Win64\UnrealEditor-Cmd.exe -utf8output -platform=Win64 -build -cook -map=ThirdPersonMap+ThirdPersonMap -CookCultures=en -unversionedcookedcontent -stage -package -cmdline="ThirdPersonMap -Messaging" -addcmdline="-SessionId=4A12A4C64656F57DD62E68A13C16AD3D -SessionOwner='Romain' -SessionName='UnNomInteressant'   "
+    // Parsing command line: -ScriptsForProject=C:/Users/Romain/Documents/UnrealEngine/Games/MyTestProject/MyTestProject.uproject BuildCookRun -project=C:/Users/Romain/Documents/UnrealEngine/Games/MyTestProject/MyTestProject.uproject -noP4 -clientconfig=Development -serverconfig=Development -nocompileeditor -unrealexe=C:\Users\Romain\Documents\UnrealEngine\Engine\Binaries\Win64\UnrealEditor-Cmd.exe -utf8output -platform=Win64 -build -cook -map=ThirdPersonMap+ThirdPersonMap -CookCultures=en -unversionedcookedcontent -stage -package -cmdline="ThirdPersonMap -Messaging" -addcmdline="-SessionId=4A12A4C64656F57DD62E68A13C16AD3D -SessionOwner='Romain' -SessionName='UnNomInteressant'   "
+
+    let args: Vec<String> = env::args().collect();
+    if args.len() < 4 {
+        panic!("Utilisation: {} <chemin du fichier uproject> package <chemin du package>", args[0]);
+    }
+    let package_path = &args[3];
+
+    println!("On package {} vers {}", project_basepath, package_path);
+
+    utils::execute_command("./Engine/Build/BatchFiles/RunUAT.bat", &[
+        "BuildCookRun",
+        &format!("-project={}", project_basepath),
+        "-noP4",
+        "-clientconfig=Development",
+        "-serverconfig=Development",
+        "-nocompileeditor",
+        "-unrealexe=./Engine/Binaries/Win64/UnrealEditor-Cmd.exe",
+        "-utf8output",
+        "-platform=Win64",
+        "-build",
+        "-cook",
+        "-map=ThirdPersonMap+ThirdPersonMap", // Pas bon
+        "-CookCultures=en",
+        "-unversionedcookedcontent",
+        "-stage",
+        "-package",
+        "-cmdline=\"ThirdPersonMap -Messaging\"", // Pas bon
+        "-addcmdline=\"-SessionId=4A12A4C64656F57DD62E68A13C16AD3D -SessionOwner='Romain' -SessionName='UnNomInteressant'\"", // Pas bon
+    ]);
 }
